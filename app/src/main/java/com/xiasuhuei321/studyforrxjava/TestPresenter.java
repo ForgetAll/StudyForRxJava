@@ -1,8 +1,7 @@
 package com.xiasuhuei321.studyforrxjava;
 
 
-import android.os.Handler;
-import android.os.Message;
+import rx.Subscriber;
 
 /**
  * Created by Luo on 2016/9/30.
@@ -13,16 +12,19 @@ public class TestPresenter {
     TestView testView;
     TestModel testModel;
 
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case TestModeImpl.MESSAGE_DELAY:
-                    TestPresenter.this.testView.getMessage();
-                    break;
-            }
-        }
-    };
+    Subscriber<Integer> subscriber;
+
+//    private Handler handler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//            switch (msg.what) {
+//                case TestModeImpl.MESSAGE_DELAY:
+//                    if (testView != null)
+//                        TestPresenter.this.testView.getMessage();
+//                    break;
+//            }
+//        }
+//    };
 
     public TestPresenter(TestView testView) {
         this.testView = testView;
@@ -31,7 +33,33 @@ public class TestPresenter {
 
     public void getMessage() {
 //        testModel.sendMessageDelayed(handler);
-        handler.sendEmptyMessageDelayed(0, 3000);
+        subscriber = new Subscriber<Integer>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(Integer o) {
+                if (testView != null)
+                    testView.getMessage();
+            }
+        };
+
+        testModel.sendMessage(subscriber);
     }
 
+
+    public void onDestroy() {
+        if (subscriber != null)
+            subscriber.unsubscribe();
+        subscriber = null;
+        this.testView = null;
+//        handler.removeCallbacks(null);
+    }
 }
